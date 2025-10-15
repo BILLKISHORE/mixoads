@@ -1,0 +1,340 @@
+{
+  "info": {
+    "name": "Mixoads Backend API",
+    "description": "Collection for testing Mixoads ad platform integration endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Connect Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has required fields', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'connected');",
+              "    pm.expect(jsonData).to.have.property('access_token');",
+              "    pm.expect(jsonData).to.have.property('refresh_token');",
+              "    pm.expect(jsonData).to.have.property('expires_in');",
+              "    ",
+              "    pm.collectionVariables.set('access_token', jsonData.access_token);",
+              "    pm.collectionVariables.set('refresh_token', jsonData.refresh_token);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"platform\": \"meta\",\n  \"account_id\": \"test_account_12345\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/connect-account",
+          "host": ["{{base_url}}"],
+          "path": ["connect-account"]
+        },
+        "description": "Simulates OAuth-like account connection and generates access/refresh tokens"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Campaign",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Campaign created successfully', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'success');",
+              "    pm.expect(jsonData).to.have.property('campaign_id');",
+              "    pm.expect(jsonData.campaign_id).to.match(/^cmp_/);",
+              "    ",
+              "    pm.collectionVariables.set('campaign_id', jsonData.campaign_id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"platform\": \"meta\",\n  \"account_id\": \"test_account_12345\",\n  \"campaign_name\": \"Summer Sale 2024\",\n  \"objective\": \"LEADS\",\n  \"budget\": 1000,\n  \"idempotency_key\": \"idem_summer_2024_v1\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/create-campaign",
+          "host": ["{{base_url}}"],
+          "path": ["create-campaign"]
+        },
+        "description": "Creates a new ad campaign with automatic token refresh and retry logic"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Generate Ad Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 or 500 (if API key not set)', function () {",
+              "    pm.expect([200, 500]).to.include(pm.response.code);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test('Ad copy generated successfully', function () {",
+              "        var jsonData = pm.response.json();",
+              "        pm.expect(jsonData).to.have.property('status', 'success');",
+              "        pm.expect(jsonData).to.have.property('headlines');",
+              "        pm.expect(jsonData).to.have.property('descriptions');",
+              "        pm.expect(jsonData.headlines).to.be.an('array');",
+              "    });",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"product\": \"Protein Shake\",\n  \"audience\": \"Fitness Enthusiasts\",\n  \"tone\": \"Exciting\",\n  \"format\": \"headlines+descriptions\",\n  \"n\": 3\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/generate-ad-copy",
+          "host": ["{{base_url}}"],
+          "path": ["generate-ad-copy"]
+        },
+        "description": "Uses OpenAI API with few-shot prompting to generate ad copy"
+      },
+      "response": []
+    },
+    {
+      "name": "4. Batch Create Ads",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Ads created successfully', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'success');",
+              "    pm.expect(jsonData).to.have.property('ads');",
+              "    pm.expect(jsonData.ads).to.be.an('array');",
+              "    pm.expect(jsonData.ads.length).to.be.at.least(1);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"platform\": \"meta\",\n  \"account_id\": \"test_account_12345\",\n  \"campaign_id\": \"{{campaign_id}}\",\n  \"batch_id\": \"batch_001_summer\",\n  \"ads\": [\n    {\n      \"headline\": \"Fuel Your Gains With Every Shake\",\n      \"description\": \"Packed with 30g of pure whey protein to support muscle growth and recovery\"\n    },\n    {\n      \"headline\": \"Transform Your Body. One Scoop At A Time\",\n      \"description\": \"Delicious flavors that make hitting your macros easy and enjoyable\"\n    },\n    {\n      \"headline\": \"Unleash Your Peak Performance\",\n      \"description\": \"The ultimate post-workout fuel trusted by athletes worldwide\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/batch-create-ads",
+          "host": ["{{base_url}}"],
+          "path": ["batch-create-ads"]
+        },
+        "description": "Creates multiple ads in a single batch (max 10) with idempotency support"
+      },
+      "response": []
+    },
+    {
+      "name": "5. Fetch Analytics",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Analytics data returned', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('spend');",
+              "    pm.expect(jsonData).to.have.property('impressions');",
+              "    pm.expect(jsonData).to.have.property('clicks');",
+              "    pm.expect(jsonData).to.have.property('ctr');",
+              "    pm.expect(jsonData).to.have.property('cpc');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/fetch-analytics?platform=meta&account_id=test_account_12345&campaign_id={{campaign_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["fetch-analytics"],
+          "query": [
+            {
+              "key": "platform",
+              "value": "meta"
+            },
+            {
+              "key": "account_id",
+              "value": "test_account_12345"
+            },
+            {
+              "key": "campaign_id",
+              "value": "{{campaign_id}}"
+            }
+          ]
+        },
+        "description": "Fetches mock analytics metrics for a campaign"
+      },
+      "response": []
+    },
+    {
+      "name": "6. Refresh Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('New tokens issued', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'success');",
+              "    pm.expect(jsonData).to.have.property('access_token');",
+              "    pm.expect(jsonData).to.have.property('refresh_token');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/refresh-token",
+          "host": ["{{base_url}}"],
+          "path": ["refresh-token"]
+        },
+        "description": "Refreshes an expired access token using a refresh token"
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Server is healthy', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('status', 'healthy');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Health check endpoint"
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "campaign_id",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
+
+
