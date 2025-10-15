@@ -19,7 +19,7 @@ A production-ready backend service that simulates ad platform integrations (Meta
 
 - Node.js 18+
 - Express.js
-- OpenAI API (GPT-3.5)
+- OpenAI API (GPT-5)
 - Winston (logging)
 - Joi (validation)
 - Jest + Supertest (testing)
@@ -238,44 +238,6 @@ GET /fetch-analytics?platform=meta&account_id=test_account_123&campaign_id=cmp_m
 3. Collection variables will auto-populate (access_token, campaign_id, etc.)
 4. Run requests in order for best results (Connect Account → Create Campaign → etc.)
 
-## Project Structure
-
-```
-mixoads-backend-challenge/
-├── src/
-│   ├── controllers/         # Request handlers
-│   │   ├── accountController.js
-│   │   ├── campaignController.js
-│   │   ├── adCopyController.js
-│   │   ├── adsController.js
-│   │   └── analyticsController.js
-│   ├── middleware/          # Express middleware
-│   │   ├── auth.js
-│   │   └── validation.js
-│   ├── services/            # Business logic
-│   │   ├── openaiService.js
-│   │   └── adPlatformService.js
-│   ├── utils/              # Utilities
-│   │   ├── logger.js
-│   │   ├── tokenManager.js
-│   │   ├── idempotency.js
-│   │   ├── rateLimiter.js
-│   │   └── retry.js
-│   ├── validators/         # Request schemas
-│   │   └── schemas.js
-│   └── __tests__/         # Test files
-│       ├── server.test.js
-│       └── tokenManager.test.js
-├── logs/                  # Application logs
-├── server.js             # Entry point
-├── package.json
-├── Dockerfile
-├── .dockerignore
-├── jest.config.js
-├── postman_collection.json
-└── README.md
-```
-
 ## Implementation Details
 
 ### Token Management
@@ -310,7 +272,7 @@ mixoads-backend-challenge/
 
 ### OpenAI Integration
 - Few-shot prompting with examples
-- GPT-3.5 Turbo model
+- GPT-5 model
 - Automatic retry on failures
 - Fallback responses if parsing fails
 
@@ -380,6 +342,7 @@ ISC
 ## Author
 
 Built for Mixoads Backend Integration Challenge
+
 
 
 # mixoads
